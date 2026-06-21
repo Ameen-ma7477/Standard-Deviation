@@ -1,33 +1,60 @@
-import pandas as pd #used for data manipulation and analysis
-import seaborn as sn #used for data visualization
+import pandas as pd
+import seaborn as sns
 import matplotlib.pyplot as plt
 
+# Load dataset
 df = pd.read_csv("heights.csv")
 
-# Print statistical summary
-# print(df.height.describe())
+# Basic statistics
+mean_height = df["height"].mean()
+std_height = df["height"].std()
 
-# Create histogram with KDE curve
-#sn.histplot(df.height, kde=True)
+print(f"Mean Height: {mean_height:.2f}")
+print(f"Standard Deviation: {std_height:.2f}")
 
-# Display the graph
-#plt.show()
+# Calculate 3-sigma boundaries
+lower_limit = mean_height - (3 * std_height)
+upper_limit = mean_height + (3 * std_height)
 
-mean = df.height.mean()
-print(mean)
+print(f"\nLower Limit: {lower_limit:.2f}")
+print(f"Upper Limit: {upper_limit:.2f}")
 
-std_deviation = df.height.std()
-print(std_deviation)
+# Detect outliers using the 3-sigma rule
+outliers = df[(df["height"] < lower_limit) | (df["height"] > upper_limit)]
 
-print(mean-3*std_deviation)
-print(mean+3*std_deviation)
+print("\nOutliers:")
+print(outliers)
 
-print(df[(df.height < 54.82) | (df.height > 77.91)])
+# Remove outliers
+df_clean = df[
+    (df["height"] >= lower_limit) &
+    (df["height"] <= upper_limit)
+]
 
-df_no_outliers = df[(df.height >= 54.82) & (df.height <= 77.91)]
-print(df_no_outliers.shape)
+print(f"\nDataset Shape After Removing Outliers: {df_clean.shape}")
 
-df['Z_score'] = (df.height - df.height.mean()) / df.height.std()
+# Calculate Z-score
+df["z_score"] = (
+    (df["height"] - mean_height) / std_height
+)
+
+print("\nDataset with Z-Score:")
 print(df.head())
 
-print(df[(df.Z_score < -3) | (df.Z_score > 3)])
+# Detect outliers using Z-score
+z_score_outliers = df[
+    (df["z_score"] < -3) |
+    (df["z_score"] > 3)
+]
+
+print("\nZ-Score Outliers:")
+print(z_score_outliers)
+
+# Visualize distribution
+sns.histplot(df["height"], kde=True)
+
+plt.title("Height Distribution")
+plt.xlabel("Height")
+plt.ylabel("Frequency")
+
+plt.show()
